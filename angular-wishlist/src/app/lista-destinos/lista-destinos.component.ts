@@ -7,7 +7,7 @@ import { DestinoViaje } from './../models/destino-viaje.model';
   styleUrls: ['./lista-destinos.component.css']
 })
 export class ListaDestinosComponent implements OnInit {
-  destinos: DestinoVaije[];
+  destinos: DestinoViaje[];
   constructor() { 
   	this.destinos = [];
   }
@@ -17,8 +17,12 @@ export class ListaDestinosComponent implements OnInit {
 
   guardar(nombre:string, url:string):boolean{
   	this.destinos.push(new DestinoViaje(nombre,url));
-  	console.log(this.destinos);
   	return false;
+  }
+
+  elegido(d:DestinoViaje){
+    this.destinos.forEach(function (x) {x.setSelected(false); });
+    d.setSelected(true);
   }
 
 }
