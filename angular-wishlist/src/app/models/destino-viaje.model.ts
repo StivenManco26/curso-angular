@@ -1,6 +1,9 @@
 export class DestinoViaje{
 	private selected: boolean;
-	constructor(public n:string, public u:string){}
+	servicios: string[];
+	constructor(public n:string, public u:string){
+		this.servicios = ['Piscina', 'Desayuno'];
+	}
 	isSelected(): boolean{
 		return this.selected;
 	}
