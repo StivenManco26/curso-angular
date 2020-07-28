@@ -19,6 +19,7 @@ export class FormDestinoViajeComponent implements OnInit {
 
   constructor(fb: FormBuilder) { 
     this.onItemAdded = new EventEmitter();
+
     this.fg = fb.group({
       nombre: ['', Validators.compose([
         Validators.required,
@@ -51,9 +52,10 @@ export class FormDestinoViajeComponent implements OnInit {
       distinctUntilChanged(),
       switchMap(() => ajax('/assets/datos.json'))
     ).subscribe(ajaxResponse => {
-      console.log(ajaxResponse);
-      console.log(ajaxResponse.response);
-      this.searchResults = ajaxResponse.response;
+      this.searchResults = ajaxResponse.response
+      .filter(function(x){
+      return x.toLowerCase().includes(elemNombre.value.toLowerCase());
+    });
     });
   }
 
@@ -73,12 +75,12 @@ export class FormDestinoViajeComponent implements OnInit {
 
   nombreValidatorParametrizable(minLong: number): ValidatorFn {
     return (control: FormControl): {[s: string]: boolean} | null => {
-      const l = control.value.toString().trim().length;
+      let l = control.value.toString().trim().length;
       if(l>0 && l<minLong){
         return { minLongNombre: true };
       }
       return null;
-    }
+    };
   }
 
 }

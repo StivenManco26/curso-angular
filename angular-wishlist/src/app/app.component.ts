@@ -12,4 +12,8 @@ export class AppComponent {
     setInterval(() => observer.next(new Date().toString()), 1000);
   });
 
+  destinoAgregado(d) {
+  	//alert(d.nombre);
+  }
+  
 }
