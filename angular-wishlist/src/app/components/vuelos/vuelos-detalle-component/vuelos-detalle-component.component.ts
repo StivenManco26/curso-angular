@@ -3,8 +3,8 @@ import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-vuelos-detalle',
-  templateUrl: './vuelos-detalle.component.html',
-  styleUrls: ['./vuelos-detalle.component.css']
+  templateUrl: './vuelos-detalle-component.component.html',
+  styleUrls: ['./vuelos-detalle-component.component.css']
 })
 export class VuelosDetalleComponent implements OnInit {
   id: any;
