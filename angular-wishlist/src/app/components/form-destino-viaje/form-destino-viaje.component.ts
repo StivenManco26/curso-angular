@@ -1,9 +1,10 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Inject, forwardRef } from '@angular/core';
 import { DestinoViaje } from '../../models/destino-viaje.model';
 import { FormGroup, FormBuilder, Validators, FormControl, ValidatorFn } from '@angular/forms';
 import { fromEvent } from 'rxjs';
 import { map, filter, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { ajax } from 'rxjs/ajax';
+import { AppConfig, APP_CONFIG } from 'src/app/app.module';
 
 
 @Component({
@@ -17,7 +18,7 @@ export class FormDestinoViajeComponent implements OnInit {
   minLongitud: 3;
   searchResults: string[];
 
-  constructor(fb: FormBuilder) { 
+  constructor(fb: FormBuilder, @Inject(forwardRef(() => APP_CONFIG)) private config: AppConfig) { 
     this.onItemAdded = new EventEmitter();
 
     this.fg = fb.group({
@@ -43,20 +44,15 @@ export class FormDestinoViajeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    let elemNombre = <HTMLInputElement>document.getElementById('nombre');
-    fromEvent(elemNombre, 'input') //fromEvent escucha cada vez que se toca una tecla
+    const elemNombre = <HTMLInputElement>document.getElementById('nombre');
+  fromEvent(elemNombre, 'input')
     .pipe(
       map((e: KeyboardEvent) => (e.target as HTMLInputElement).value),
       filter(text => text.length > 2),
-      debounceTime(200),
+      debounceTime(120),
       distinctUntilChanged(),
-      switchMap(() => ajax('/assets/datos.json'))
-    ).subscribe(ajaxResponse => {
-      this.searchResults = ajaxResponse.response
-      .filter(function(x){
-      return x.toLowerCase().includes(elemNombre.value.toLowerCase());
-    });
-    });
+      switchMap((text: string) => ajax(this.config.apiEndpoint + '/ciudades?q=' + text))
+    ).subscribe(ajaxResponse => this.searchResults = ajaxResponse.response);
   }
 
   guardar(nombre: string, url: string): boolean{
