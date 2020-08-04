@@ -23,6 +23,7 @@
     "@ngrx/effects": "^9.2.0",
     "@ngrx/store": "^9.2.0",
     "@ngrx/store-devtools": "^9.2.0",
+    "@ngx-translate/core": "^13.0.0",
     "@types/uuid": "^8.0.0",
     "bootstrap": "^4.5.0",
     "core-js": "^3.6.5",

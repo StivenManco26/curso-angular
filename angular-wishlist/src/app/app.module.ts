@@ -7,6 +7,7 @@ import { EffectsModule } from '@ngrx/effects';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { HttpClientModule, HttpClient, HttpHeaders, HttpRequest } from '@angular/common/http';
 import Dexie from 'dexie';
+import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 
 import { AppComponent } from './app.component';
 import { DestinoViajeComponent } from './components/destino-viaje/destino-viaje.component';
@@ -30,7 +31,9 @@ import { VuelosMainComponentComponent } from './components/vuelos/vuelos-main-co
 import { VuelosMasInfoComponentComponent } from './components/vuelos/vuelos-mas-info-component/vuelos-mas-info-component.component';
 import { VuelosDetalleComponent } from './components/vuelos/vuelos-detalle-component/vuelos-detalle-component.component';
 import { ReservasModule } from './reservas/reservas.module';
-import { DestinoViaje } from './models/destino-viaje.model'; 
+import { DestinoViaje } from './models/destino-viaje.model';
+import { Observable, from } from 'rxjs';
+import { map, flatMap } from 'rxjs/operators';
 
 // init routing
 export const childrenRoutesVuelos: Routes = [
@@ -41,21 +44,21 @@ export const childrenRoutesVuelos: Routes = [
 ];
 
 const routes: Routes = [
-  {path: '', redirectTo: 'home', pathMatch: 'full'},
-  {path: 'home', component: ListaDestinosComponent},
-  {path: 'destino/:id', component: DestinoDetalleComponent},
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: 'home', component: ListaDestinosComponent },
+  { path: 'destino/:id', component: DestinoDetalleComponent },
   { path: 'login', component: LoginComponent },
-    {
-      path: 'protected',
-      component: ProtectedComponent,
-      canActivate: [ UsuarioLogueadoGuard ]
-    },
-    {
-      path: 'vuelos',
-      component: VuelosComponentComponent,
-      canActivate: [ UsuarioLogueadoGuard ],
-      children: childrenRoutesVuelos
-    }
+  {
+    path: 'protected',
+    component: ProtectedComponent,
+    canActivate: [UsuarioLogueadoGuard]
+  },
+  {
+    path: 'vuelos',
+    component: VuelosComponentComponent,
+    canActivate: [UsuarioLogueadoGuard],
+    children: childrenRoutesVuelos
+  }
 ];
 // end init routing
 
@@ -70,7 +73,7 @@ export const APP_CONFIG = new InjectionToken<AppConfig>('app.config');
 // fin app config
 
 // app init
-export function init_app(appLoadService: AppLoadService): () => Promise<any>  {
+export function init_app(appLoadService: AppLoadService): () => Promise<any> {
   return () => appLoadService.intializeDestinosViajesState();
 }
 
@@ -78,7 +81,7 @@ export function init_app(appLoadService: AppLoadService): () => Promise<any>  {
 class AppLoadService {
   constructor(private store: Store<AppState>, private http: HttpClient) { }
   async intializeDestinosViajesState(): Promise<any> {
-    const headers: HttpHeaders = new HttpHeaders({'X-API-TOKEN': 'token-seguridad'});
+    const headers: HttpHeaders = new HttpHeaders({ 'X-API-TOKEN': 'token-seguridad' });
     const req = new HttpRequest('GET', APP_CONFIG_VALUE.apiEndpoint + '/my', { headers: headers });
     const response: any = await this.http.request(req).toPromise();
     this.store.dispatch(new InitMyDataAction(response.body));
@@ -96,26 +99,77 @@ const reducers: ActionReducerMap<AppState> = {
 };
 
 let reducersInitialState = {
-    destinos: intializeDestinosViajesState()
+  destinos: intializeDestinosViajesState()
 };
 //fin redux init
 
 // dexie db
+export class Translation {
+  constructor(public id: number, public lang: string, public key: string, public value: string) { }
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class MyDatabase extends Dexie {
   destinos: Dexie.Table<DestinoViaje, number>;
-  constructor () {
-      super('MyDatabase');
-      this.version(1).stores({
-        destinos: '++id, nombre, imagenUrl',
-      });
+  translations: Dexie.Table<Translation, number>;
+  constructor() {
+    super('MyDatabase');
+    this.version(1).stores({
+      destinos: '++id, nombre, imagenUrl'
+    });
+    this.version(2).stores({
+      destinos: '++id, nombre, imagenUrl',
+      translations: '++id, lang, key, value'
+    });
   }
 }
 
 export const db = new MyDatabase();
 // fin dexie db
+
+// i18n ini
+class TranslationLoader implements TranslateLoader {
+  constructor(private http: HttpClient) { }
+
+  getTranslation(lang: string): Observable<any> {
+    const promise = db.translations
+      .where('lang')
+      .equals(lang)
+      .toArray()
+      .then(results => {
+        if (results.length === 0) {
+          return this.http
+            .get<Translation[]>(APP_CONFIG_VALUE.apiEndpoint + '/api/translation?lang=' + lang)
+            .toPromise()
+            .then(apiResults => {
+              db.translations.bulkAdd(apiResults);
+              return apiResults;
+            });
+        }
+        return results;
+      }).then((traducciones) => {
+        console.log('traducciones cargadas:');
+        console.log(traducciones);
+        return traducciones;
+      }).then((traducciones) => {
+        return traducciones.map((t) => ({ [t.key]: t.value }));
+      });
+    /*
+    return from(promise).pipe(
+      map((traducciones) => traducciones.map((t) => { [t.key]: t.value}))
+    );
+    */
+    return from(promise).pipe(flatMap((elems) => from(elems)));
+  }
+}
+
+function HttpLoaderFactory(http: HttpClient) {
+  return new TranslationLoader(http);
+}
+// fin i18n
+
 
 @NgModule({
   declarations: [
@@ -147,6 +201,13 @@ export const db = new MyDatabase();
     EffectsModule.forRoot([DestinosViajesEffects]),
     StoreDevtoolsModule.instrument(),
     ReservasModule,
+    TranslateModule.forRoot({
+      loader: {
+          provide: TranslateLoader,
+          useFactory: (HttpLoaderFactory),
+          deps: [HttpClient]
+      }
+  })
   ],
   providers: [
     AuthService,

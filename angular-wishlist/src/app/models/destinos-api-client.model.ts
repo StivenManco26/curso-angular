@@ -5,7 +5,7 @@ import {
 	NuevoDestinoAction,
 	ElegidoFavoritoAction
 } from './destinos-viajes-state.model';
-import { AppState, APP_CONFIG, AppConfig, db, MyDatabase } from './../app.module';
+import { AppState, APP_CONFIG, AppConfig, db } from './../app.module';
 import { HttpClient, HttpHeaders, HttpRequest, HttpResponse } from '@angular/common/http';
 
 @Injectable()
