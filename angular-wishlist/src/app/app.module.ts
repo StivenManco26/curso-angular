@@ -36,6 +36,7 @@ import { HttpClientModule, HttpClient, HttpHeaders, HttpRequest, HttpResponse } 
 import { DestinoViaje } from './models/destino-viaje.model';
 import { Observable, from } from 'rxjs';
 import { map, flatMap } from 'rxjs/operators';
+import { EspiameDirective } from './espiame.directive';
 
 // init routing
 export const childrenRoutesVuelos: Routes = [
@@ -185,7 +186,8 @@ function HttpLoaderFactory(http: HttpClient) {
     VuelosComponentComponent,
     VuelosMainComponentComponent,
     VuelosMasInfoComponentComponent,
-    VuelosDetalleComponent
+    VuelosDetalleComponent,
+    EspiameDirective
   ],
   imports: [
     BrowserModule,
