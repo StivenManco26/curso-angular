@@ -4,7 +4,8 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DestinoViaje } from './destino-viaje.model';
-
+import { DestinosApiClient } from './destinos-api-client.model';
+import { HttpHeaders, HttpRequest, HttpResponse } from '@angular/common/http';							
 // ESTADO
 export interface DestinosViajesState {
     items: DestinoViaje[];
@@ -31,8 +32,7 @@ export enum DestinosViajesActionTypes {
 
 export class NuevoDestinoAction implements Action {
   type = DestinosViajesActionTypes.NUEVO_DESTINO;
-  constructor(public destino: DestinoViaje) {
-  }
+  constructor(public destino: DestinoViaje) {}
 }
 
 export class ElegidoFavoritoAction implements Action {
@@ -66,7 +66,6 @@ export function reducerDestinosViajes(
   switch (action.type) {
     case DestinosViajesActionTypes.INIT_MY_DATA: {
       const destinos: string[] = (action as InitMyDataAction).destinos;
-      console.log('Estoy en case INIT_MY_DATA');
       return {
           ...state,
           items: destinos.map((d) => new DestinoViaje(d, ''))

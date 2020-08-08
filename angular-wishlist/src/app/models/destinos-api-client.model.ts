@@ -5,8 +5,8 @@ import {
 	NuevoDestinoAction,
 	ElegidoFavoritoAction
 } from './destinos-viajes-state.model';
-import { AppState, APP_CONFIG, AppConfig, db } from './../app.module';
-import { HttpClient, HttpHeaders, HttpRequest, HttpResponse } from '@angular/common/http';
+import { AppState, APP_CONFIG, AppConfig, MyDatabase, db } from './../app.module';
+import { HttpRequest, HttpHeaders, HttpClient, HttpEvent, HttpResponse } from '@angular/common/http';
 
 @Injectable()
 export class DestinosApiClient {
@@ -18,10 +18,17 @@ export class DestinosApiClient {
 		private http: HttpClient
 	) {
 		this.store
-			.subscribe((data) => {
-				console.log('all store');
-				console.log(data);
-			});
+			.select(state => state.destinos)
+      .subscribe((data) => {
+        console.log('destinos sub store');
+        console.log(data);
+        this.destinos = data.items;
+      });
+    this.store
+      .subscribe((data) => {
+        console.log('all store');
+        console.log(data);
+      });
 	}
 
 	//Se crea un Request POST
